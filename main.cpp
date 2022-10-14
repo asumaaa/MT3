@@ -41,13 +41,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Vector3 SpherePos(-10.0f, 0, 0);
 
 	//カメラ設定
-	Vector3 cameraPosition(0.0f, 10.0f, -120.0f);
+	Vector3 cameraPosition(0.0f, 300.0f, 0.0f);
 	Vector3 cameraTarget(0.0f, 0.0f, 0.0f);
-	Vector3 cameraUp(0.0f, 1.0f, 0.0f);
+	Vector3 cameraUp(0.0f, 0.0f, 1.0f);
 	//		クリップ面
 	SetCameraNearFar(1.0f, 1000.0f);
 	SetCameraScreenCenter(WindowWidth / 2.0f, WindowHeight / 2.0f);
-	SetCameraPositionAndTargetAndUpVec(cameraPosition, cameraTarget, cameraUp);
+	SetCameraPositionAndTargetAndUpVec(
+		cameraPosition,
+		cameraTarget,
+		cameraUp
+	);
 
 	SetUseZBuffer3D(true);
 	SetWriteZBuffer3D(true);
@@ -58,8 +62,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	long long elapsedCount = 0;
 
 	//補間で使うデータ
-	Vector3 start(-100.0f, 0.0f, 0.0f);	//スタート地点
-	Vector3 end	 (+100.0f, 0.0f, 0.0f);	//エンド地点
+	Vector3 p0(-200.0f, 0.0f, 0.0f);	//スタート地点
+	Vector3 p1(-100.0f, 0.0f, +100.0f);	//制御点
+	Vector3 p2(+100.0f, 0.0f, -100.0f);	//制御点
+	Vector3 p3(+200.0f, 0.0f, 0.0f);	//エンド地点
 	float	maxTime = 5.0f;				//全体時間[s]
 	float	timeRate;					//何％時間が進んだか(率)
 
@@ -86,12 +92,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 		timeRate = min(elapsedTime / maxTime, 1.0f);
 
-		position = lerp(start, end, timeRate);
+		//2次ベジエ曲線
+		Vector3 a = lerp(p0, p1, timeRate);
+		Vector3 b = lerp(p1, p2, timeRate);
+		Vector3 c = lerp(p2, p3, timeRate);
+
+		Vector3 d = lerp(a, b, timeRate);
+		Vector3 e = lerp(b, c, timeRate);
+
+		position = lerp(d, e, timeRate);
 		
 		//描画
 		ClearDrawScreen();	//画面を消去
 		DrawAxis3D(500.0f);	//x,y,z軸の描画
-		DrawSphere3D(position, 4.0f, 32.0f, GetColor(255, 0, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(position, 8.0f, 32.0f, GetColor(255, 0, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p0, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p1, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p2, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p3, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
 
 		ScreenFlip();
 	}
