@@ -3,6 +3,7 @@
 #include "Matrix4.h"
 #include "cmath"
 #include "cstring"
+#include "vector"
 
 //球の描画
 int DrawSphere3D(const Vector3& CenterPos, const float r, const int DivNum,
@@ -24,6 +25,10 @@ int DrawCone3D(const Vector3& TopPos, const Vector3& BottomPos, const float r, c
 
 //x,y,z軸の描画
 void DrawAxis3D(const float length);
+
+//制御点の集合
+Vector3 splinePosition(const std::vector<Vector3>& points, size_t startIndex, float t);
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -172,4 +177,11 @@ void DrawAxis3D(const float length)
 		GetColor(0, 255, 0), GetColor(255, 255, 255), true);
 	DrawCone3D(Vector3(0, 0, length), Vector3(0, 0, length - coneSize), coneSize / 2, 16,
 		GetColor(0, 0, 255), GetColor(255, 255, 255), true);*/
+}
+
+//スプライン補間
+Vector3 splinePosition(const std::vector<Vector3>& points, size_t startIndex, float t)
+{
+	//補完すべき点の数
+	size_t n = points.size() - 2;
 }
