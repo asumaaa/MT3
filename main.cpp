@@ -46,9 +46,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	Vector3 SpherePos(-10.0f, 0, 0);
 
 	//カメラ設定
-	Vector3 cameraPosition(0.0f, 300.0f, 0.0f);
+	Vector3 cameraPosition(0.0f, 10.0f, -150.0f);
 	Vector3 cameraTarget(0.0f, 0.0f, 0.0f);
-	Vector3 cameraUp(0.0f, 0.0f, 1.0f);
+	Vector3 cameraUp(0.0f, 1.0f, 0.0f);
 	//		クリップ面
 	SetCameraNearFar(1.0f, 1000.0f);
 	SetCameraScreenCenter(WindowWidth / 2.0f, WindowHeight / 2.0f);
@@ -67,15 +67,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	long long elapsedCount = 0;
 
 	//補間で使うデータ
-	Vector3 p0(-200.0f, 0.0f, 0.0f);	//スタート地点
-	Vector3 p1(-100.0f, 0.0f, +100.0f);	//制御点
-	Vector3 p2(+100.0f, 0.0f, -100.0f);	//制御点
-	Vector3 p3(+200.0f, 0.0f, 0.0f);	//エンド地点
-	float	maxTime = 5.0f;				//全体時間[s]
+	Vector3 start(-100.0f,   0.0f,   0.0f);	//スタート地点
+	Vector3 p2	 ( -50.0f,  50.0f, +50.0f);	//制御点
+	Vector3 p3	 ( +50.0f, -30.0f, -50.0f);	//制御点
+	Vector3 end	 (+100.0f,   0.0f,   0.0f);	//エンド地点
+	//全ての点を通るスプライン曲線
+	std::vector<Vector3> points{ start,start,p2,p3,end,end };
+	float	maxTime = 3.0f;				//全体時間[s]
 	float	timeRate;					//何％時間が進んだか(率)
 
 	//球の位置
 	Vector3 position;
+
+	//p1からスタートする
+	size_t startIndex = 1;
 
 	//実行前にカウンタ値を取得
 	startCount = GetNowHiPerformanceCount();
@@ -87,6 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		if (CheckHitKey(KEY_INPUT_R))
 		{
 			startCount = GetNowHiPerformanceCount();
+			startIndex = 1;
 		}
 
 		//更新
@@ -95,26 +101,36 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		elapsedCount = nowCount - startCount;
 		float elapsedTime = static_cast<float>(elapsedCount) / 1'000'000.0f;
 
-		timeRate = min(elapsedTime / maxTime, 1.0f);
+		timeRate = elapsedTime / maxTime;
+		/*timeRate = min(elapsedTime / maxTime, 1.0f);*/
+
+		if (timeRate >= 1.0f)
+		{
+			if (startIndex < points.size() - 3)
+			{
+				startIndex += 1;
+				timeRate -= 1.0f;
+				startCount = GetNowHiPerformanceCount();
+			}
+			else
+			{
+				timeRate = 1.0f;
+			}
+		}
+		position = splinePosition(points, startIndex, timeRate);
 
 		//2次ベジエ曲線
-		Vector3 a = lerp(p0, p1, timeRate);
-		Vector3 b = lerp(p1, p2, timeRate);
-		Vector3 c = lerp(p2, p3, timeRate);
-
-		Vector3 d = lerp(a, b, timeRate);
-		Vector3 e = lerp(b, c, timeRate);
-
-		position = lerp(d, e, timeRate);
 		
 		//描画
 		ClearDrawScreen();	//画面を消去
 		DrawAxis3D(500.0f);	//x,y,z軸の描画
-		DrawSphere3D(position, 8.0f, 32.0f, GetColor(255, 0, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p0, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p1, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p2, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p3, 4.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(start, 2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p2,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(p3,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawSphere3D(end,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+
+		DrawSphere3D(position, 5.0f, 32.0f, GetColor(255, 0, 0), GetColor(255, 255, 255), true);
+
 
 		ScreenFlip();
 	}
@@ -171,12 +187,12 @@ void DrawAxis3D(const float length)
 	DrawLine3D(Vector3(0, 0, -length), Vector3(0, 0, +length), GetColor(0, 0, 255));
 
 	const float coneSize = 10.0f;
-	/*DrawCone3D(Vector3(length, 0, 0), Vector3(length - coneSize, 0, 0), coneSize / 2, 16,
+	DrawCone3D(Vector3(length, 0, 0), Vector3(length - coneSize, 0, 0), coneSize / 2, 16,
 		GetColor(255, 0, 0), GetColor(255, 255, 255), true);
 	DrawCone3D(Vector3(0, length, 0), Vector3(0, length - coneSize, 0), coneSize / 2, 16,
 		GetColor(0, 255, 0), GetColor(255, 255, 255), true);
 	DrawCone3D(Vector3(0, 0, length), Vector3(0, 0, length - coneSize), coneSize / 2, 16,
-		GetColor(0, 0, 255), GetColor(255, 255, 255), true);*/
+		GetColor(0, 0, 255), GetColor(255, 255, 255), true);
 }
 
 //スプライン補間
@@ -184,4 +200,19 @@ Vector3 splinePosition(const std::vector<Vector3>& points, size_t startIndex, fl
 {
 	//補完すべき点の数
 	size_t n = points.size() - 2;
+
+	if (startIndex > n) return points[n];	//p0の値を返す
+	if (startIndex < 1) return points[1];	//p1の値を返す
+
+	//p0~p3の制御点を取得する
+	Vector3 p0 = points[startIndex - 1];
+	Vector3 p1 = points[startIndex];
+	Vector3 p2 = points[startIndex + 1];
+	Vector3 p3 = points[startIndex + 2];
+
+	Vector3 position = (2 * p1 + ((-p0 + p2) * t) + 
+					 (((2 * p0) - (5 * p1) + (4 * p2) - p3) * (t * t)) +
+					 ((-p0 + (3 * p1) - (3 * p2) + p3) * (t * t * t))) * 0.5;
+
+	return position;
 }
