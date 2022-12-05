@@ -5,8 +5,11 @@
 #include "cstring"
 #include "vector"
 #include "math.h"
-#include "SceneManager.h"
 #include "string.h"
+#include "Enemy.h"
+
+//静的メンバ変数
+int Enemy::EnemyCount;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -17,51 +20,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	const int WindowWidth = 600;
 	const int WindowHeight = 400;
 
+	//敵
+	const int enemyVol = 5;	//敵の数
+	Enemy* enemy[enemyVol];
+	
 	ChangeWindowMode(true);
 	SetWindowSize(WindowWidth, WindowHeight);
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	//インスタンスを取得
-	SceneManager* SceneManager = nullptr;
-	SceneManager = SceneManager::GetInstance();
-
-	//シーン
-	SceneManager->SetScene(Title);
-
+		for (int i = 0; i < enemyVol; i++)
+		{
+			enemy[i] = new Enemy;	//敵生成
+		}
 	//ゲームループ
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
 		GetHitKeyStateAll(key);
 		ClearDrawScreen();
 
-		//スペースのトリガーキーでシーンチェンジ
-		if (key[KEY_INPUT_SPACE] == 1 && oldKey[KEY_INPUT_SPACE] == 0)
+
+		if (key[KEY_INPUT_1] == 1)
 		{
-			if (SceneManager->GetScene() == Title) {
-				SceneManager->ChangeScene(NewGame);
-			}
-			else if(SceneManager->GetScene() == NewGame) {
-				SceneManager->ChangeScene(GamePlay);
-			}
-			else if (SceneManager->GetScene() == GamePlay) {
-				SceneManager->ChangeScene(NewClear);
-			}
-			else if (SceneManager->GetScene() == NewClear) {
-				SceneManager->ChangeScene(Title);
-			}
+			enemy[0]->Dead();
 		}
 
-		//シーンによって色チェンジ
-		if (SceneManager->GetScene() == Title)SetBackgroundColor(125,0,0);
-		if (SceneManager->GetScene() == NewGame)SetBackgroundColor(0, 125, 0);
-		if (SceneManager->GetScene() == GamePlay)SetBackgroundColor(0, 0, 125);
-		if (SceneManager->GetScene() == NewClear)SetBackgroundColor(0, 0, 0);
+		//敵更新
+		for (int i = 0; i < enemyVol; i++)
+		{
+			enemy[i]->Update();
+			//死亡フラグの立った敵を削除
+			if (enemy[i]->GetDeathFlag())
+			{
+				delete enemy[i];
+			}
+			//描画
+			enemy[i]->Draw();
+		}
 
-		DrawFormatString(0, 0, 0xffffff, "PushSpace");
-		DrawFormatString(0, 20, 0xffffff, "Scene:%d", SceneManager->GetScene());
-
-		memcpy(oldKey, key, sizeof(key));
 		ScreenFlip();
 	}
 	DxLib_End();
