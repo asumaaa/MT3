@@ -1,28 +1,57 @@
 #include "Enemy.h"
 #include "DxLib.h"
 
-Enemy::Enemy()
+Enemy::Enemy(int x, int y)
 {
-	EnemyCount++;
-
-	posX = EnemyCount * 32;
-	posY = 32;
-	r = 16;
+	this->posX = x;
+	this->posY = y;
 }
 
 void Enemy::Update()
 {
-	//前のフレームよりも敵の数が減ったら死亡フラグを立てる
-	if (EnemyCount < preEnemyCount)
-	{
-		deathFlag = true;
-	}
+	//シーンマネージャー
+	SceneManager();
 
-	//前フレームの敵の数取得
-	preEnemyCount = EnemyCount;
+	(this->*Scene[scene])();
+}
+
+void Enemy::Approach()
+{
+	posX += 2;
+}
+
+void Enemy::Shot()
+{
+}
+
+void Enemy::Leave()
+{
+	posX -= 2;
+}
+
+void Enemy::SceneManager()
+{
+	//300でリセットするタイマーを更新
+	sceneTimer++;
+	if (sceneTimer >= 300)sceneTimer = 0;
+
+	//タイマーによってシーンチェンジ
+	if (sceneTimer >= 0 && sceneTimer < 100)scene = static_cast<size_t>(Scene::Approach);
+	if (sceneTimer >= 100 && sceneTimer < 200)scene = static_cast<size_t>(Scene::Shot);
+	if (sceneTimer >= 200 && sceneTimer < 300)scene = static_cast<size_t>(Scene::Leave);
 }
 
 void Enemy::Draw()
 {
 	DrawCircle(posX, posY, r, 0xffffff, false);
+	if (scene == static_cast<size_t>(Scene::Approach))	DrawFormatString(0, 0, 0xffffff, "Scene:Approach");
+	if (scene == static_cast<size_t>(Scene::Shot))		DrawFormatString(0, 0, 0xffffff, "Scene:Shot");
+	if (scene == static_cast<size_t>(Scene::Leave))		DrawFormatString(0, 0, 0xffffff, "Scene:Leave");
 }
+
+void(Enemy::* Enemy::Scene[])() =
+{
+	&Enemy::Approach,
+	&Enemy::Shot,
+	&Enemy::Leave,
+};
