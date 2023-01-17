@@ -6,7 +6,6 @@
 #include "vector"
 #include "math.h"
 #include "string.h"
-#include "Enemy.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	LPSTR lpCmdLine, int nCmdShow)
@@ -16,28 +15,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	const int WindowWidth = 600;
 	const int WindowHeight = 400;
-
-	//ìG
-	Enemy* enemy = new Enemy(100,100);
 	
 	ChangeWindowMode(true);
 	SetWindowSize(WindowWidth, WindowHeight);
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
+
+	//------ïœêîíËã`--------
+	std::vector<float>dot;
+
 	//ÉQÅ[ÉÄÉãÅ[Év
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
 		GetHitKeyStateAll(key);
 		ClearDrawScreen();
 
-		//ìGÇÃçXêVï`âÊ
-		enemy->Update();
-		enemy->Draw();
-
 		ScreenFlip();
 	}
-
-	delete enemy;
 
 	DxLib_End();
 	return 0;
