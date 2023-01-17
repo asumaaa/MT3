@@ -1,7 +1,7 @@
 #include "Matrix4.h"
 #include "cmath"
 
-Matrix4 identity()
+Matrix4 Identity()
 {
 	static const Matrix4 result
 	{
@@ -79,7 +79,7 @@ Matrix4 translate(const Vector3& t)
 	return result;
 }
 
-Vector3 transform(const Vector3& v, const Matrix4& m)
+Vector3 Transform(const Vector3& v, const Matrix4& m)
 {
 	float w = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + m.m[3][3];
 
@@ -119,5 +119,5 @@ Matrix4 operator*(const Matrix4& m1, const Matrix4& m2)
 
 Vector3 operator*(const Vector3& v, const Matrix4& m)
 {
-	return transform(v, m);
+	return Transform(v, m);
 }
