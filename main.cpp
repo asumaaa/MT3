@@ -4,10 +4,7 @@
 #include "cmath"
 #include "cstring"
 #include "vector"
-
-//球の描画
-int DrawSphere3D(const Vector3& CenterPos, const float r, const int DivNum,
-	const unsigned int DifColor, const unsigned int SpcColor, const int FillFlag);
+#include "Quaternion.h"
 
 //カメラ設定
 int SetCameraPositionAndTargetAndUpVec(
@@ -16,18 +13,7 @@ int SetCameraPositionAndTargetAndUpVec(
 	const Vector3& cameraUp	//カメラの上の向き
 );
 
-//線分の描画
-int DrawLine3D(const Vector3& Pos1, const Vector3& Pos2, const unsigned Color);
-
-//円錐の描画
-int DrawCone3D(const Vector3& TopPos, const Vector3& BottomPos, const float r, const int DivNum,
-	const unsigned int DifColor, const unsigned int SpcColor, const int FillFlag);
-
-//x,y,z軸の描画
-void DrawAxis3D(const float length);
-
-//制御点の集合
-Vector3 splinePosition(const std::vector<Vector3>& points, size_t startIndex, float t);
+void DrawString(float x,float y,int color, Quaternion q);
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -38,113 +24,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	ChangeWindowMode(true);
 	SetGraphMode(WindowWidth, WindowHeight, 32);
-	SetBackgroundColor(0, 0, 64);
+	SetBackgroundColor(0, 0, 0);
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	//球体の座標
-	Vector3 SpherePos(-10.0f, 0, 0);
-
-	//カメラ設定
-	Vector3 cameraPosition(0.0f, 10.0f, -150.0f);
-	Vector3 cameraTarget(0.0f, 0.0f, 0.0f);
-	Vector3 cameraUp(0.0f, 1.0f, 0.0f);
-	//		クリップ面
-	SetCameraNearFar(1.0f, 1000.0f);
-	SetCameraScreenCenter(WindowWidth / 2.0f, WindowHeight / 2.0f);
-	SetCameraPositionAndTargetAndUpVec(
-		cameraPosition,
-		cameraTarget,
-		cameraUp
-	);
-
-	SetUseZBuffer3D(true);
-	SetWriteZBuffer3D(true);
-
-	//時間計測に必要なデータ
-	long long startCount = 0;
-	long long nowCount = 0;
-	long long elapsedCount = 0;
-
-	//補間で使うデータ
-	Vector3 start(-100.0f,   0.0f,   0.0f);	//スタート地点
-	Vector3 p2	 ( -50.0f,  50.0f, +50.0f);	//制御点
-	Vector3 p3	 ( +50.0f, -30.0f, -50.0f);	//制御点
-	Vector3 end	 (+100.0f,   0.0f,   0.0f);	//エンド地点
-	//全ての点を通るスプライン曲線
-	std::vector<Vector3> points{ start,start,p2,p3,end,end };
-	float	maxTime = 3.0f;				//全体時間[s]
-	float	timeRate;					//何％時間が進んだか(率)
-
-	//球の位置
-	Vector3 position;
-
-	//p1からスタートする
-	size_t startIndex = 1;
-
-	//実行前にカウンタ値を取得
-	startCount = GetNowHiPerformanceCount();
+	Quaternion q1(2.0f, 3.0f, 4.0f, 1.0f);
+	Quaternion q2(1.0f, 3.0f, 5.0f, 2.0f);
+	//単位Quaternion
+	Quaternion identity = IdentityQuaternion();
+	//共役
+	Quaternion conj = Conjugate(q1);
+	//逆
+	Quaternion inv = Inverse(q1);
+	//正規化
+	Quaternion normal = Normalize(q1);
+	//積
+	Quaternion mul1 = Multiply(q1, q2);
+	Quaternion mul2 = Multiply(q2, q1);
+	//norm 
+	float norm = Norm(q1);
 
 	//ゲームループ
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
-		//[R]キーでリスタート
-		if (CheckHitKey(KEY_INPUT_R))
-		{
-			startCount = GetNowHiPerformanceCount();
-			startIndex = 1;
-		}
-
 		//更新
-		//経過時間の計算
-		nowCount = GetNowHiPerformanceCount();
-		elapsedCount = nowCount - startCount;
-		float elapsedTime = static_cast<float>(elapsedCount) / 1'000'000.0f;
-
-		timeRate = elapsedTime / maxTime;
-		/*timeRate = min(elapsedTime / maxTime, 1.0f);*/
-
-		if (timeRate >= 1.0f)
-		{
-			if (startIndex < points.size() - 3)
-			{
-				startIndex += 1;
-				timeRate -= 1.0f;
-				startCount = GetNowHiPerformanceCount();
-			}
-			else
-			{
-				timeRate = 1.0f;
-			}
-		}
-		position = splinePosition(points, startIndex, timeRate);
-
-		//2次ベジエ曲線
 		
 		//描画
-		ClearDrawScreen();	//画面を消去
-		DrawAxis3D(500.0f);	//x,y,z軸の描画
-		DrawSphere3D(start, 2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p2,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(p3,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-		DrawSphere3D(end,	2.0f, 32.0f, GetColor(0, 255, 0), GetColor(255, 255, 255), true);
+		DrawString(0, 0, 0xffffff, identity);
+		DrawString(0, 20, 0xffffff, conj);
+		DrawString(0, 40, 0xffffff, inv);
+		DrawString(0, 60, 0xffffff, normal);
+		DrawString(0, 80, 0xffffff, mul1);
+		DrawString(0, 100, 0xffffff, mul2);
+		DrawFormatString(0, 120, 0xffffff, "%f", norm);
 
-		DrawSphere3D(position, 5.0f, 32.0f, GetColor(255, 0, 0), GetColor(255, 255, 255), true);
-
+		DrawFormatString(380, 0, 0xffffff, "Identity");
+		DrawFormatString(380, 20, 0xffffff, "Conjugate");
+		DrawFormatString(380, 40, 0xffffff, "Inverse");
+		DrawFormatString(380, 60, 0xffffff, "Normalize");
+		DrawFormatString(380, 80, 0xffffff, "Multiply(q1,q2)");
+		DrawFormatString(380, 100, 0xffffff, "Multiply(q2,q1)");
+		DrawFormatString(380, 120, 0xffffff, "Normalize");
 
 		ScreenFlip();
 	}
 	DxLib_End();
 	return 0;
-}
-
-
-//球の描画
-int DrawSphere3D(const Vector3& CenterPos, const float r, const int DivNum,
-	const unsigned int DifColor, const unsigned int SpcColor, const int FillFlag)
-{
-	VECTOR centerPos = { CenterPos.x,CenterPos.y,CenterPos.z };
-	return DrawSphere3D(centerPos, r, DivNum, DifColor, SpcColor, FillFlag);
 }
 
 //カメラ設定
@@ -161,58 +86,7 @@ int SetCameraPositionAndTargetAndUpVec(
 	return SetCameraPositionAndTargetAndUpVec(position, target, up);
 }
 
-//線分の描画
-int DrawLine3D(const Vector3& Pos1, const Vector3& Pos2, const unsigned Color)
+void DrawString(float x, float y, int color, Quaternion q)
 {
-	VECTOR p1 = { Pos1.x,Pos1.y ,Pos1.z };
-	VECTOR p2 = { Pos2.x,Pos2.y ,Pos2.z };
-
-	return  DrawLine3D(p1, p2, Color);
-}
-
-//円錐の描画
-int DrawCone3D(const Vector3& TopPos, const Vector3& BottomPos, const float r, const int DivNum,
-	const unsigned int DifColor, const unsigned int SpcColor, const int FillFlag)
-{
-	VECTOR topPos = { TopPos.x,TopPos.y,TopPos.z };
-	VECTOR bottomPos = { BottomPos.x,BottomPos.y,BottomPos.z };
-
-	return DrawCone3D(topPos, bottomPos, r, DivNum, DifColor, SpcColor, FillFlag);
-}
-
-void DrawAxis3D(const float length)
-{
-	DrawLine3D(Vector3(-length, 0, 0), Vector3(+length, 0, 0), GetColor(255, 0, 0));
-	DrawLine3D(Vector3(0, -length, 0), Vector3(0, +length, 0), GetColor(0, 255, 0));
-	DrawLine3D(Vector3(0, 0, -length), Vector3(0, 0, +length), GetColor(0, 0, 255));
-
-	const float coneSize = 10.0f;
-	DrawCone3D(Vector3(length, 0, 0), Vector3(length - coneSize, 0, 0), coneSize / 2, 16,
-		GetColor(255, 0, 0), GetColor(255, 255, 255), true);
-	DrawCone3D(Vector3(0, length, 0), Vector3(0, length - coneSize, 0), coneSize / 2, 16,
-		GetColor(0, 255, 0), GetColor(255, 255, 255), true);
-	DrawCone3D(Vector3(0, 0, length), Vector3(0, 0, length - coneSize), coneSize / 2, 16,
-		GetColor(0, 0, 255), GetColor(255, 255, 255), true);
-}
-
-//スプライン補間
-Vector3 splinePosition(const std::vector<Vector3>& points, size_t startIndex, float t)
-{
-	//補完すべき点の数
-	size_t n = points.size() - 2;
-
-	if (startIndex > n) return points[n];	//p0の値を返す
-	if (startIndex < 1) return points[1];	//p1の値を返す
-
-	//p0~p3の制御点を取得する
-	Vector3 p0 = points[startIndex - 1];
-	Vector3 p1 = points[startIndex];
-	Vector3 p2 = points[startIndex + 1];
-	Vector3 p3 = points[startIndex + 2];
-
-	Vector3 position = (2 * p1 + ((-p0 + p2) * t) + 
-					 (((2 * p0) - (5 * p1) + (4 * p2) - p3) * (t * t)) +
-					 ((-p0 + (3 * p1) - (3 * p2) + p3) * (t * t * t))) * 0.5;
-
-	return position;
+	DrawFormatString(x, y, color, "%f %f %f %f", q.v.x, q.v.y, q.v.z, q.w);
 }
