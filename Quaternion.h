@@ -42,3 +42,6 @@ Vector3 RotateVector(const Vector3& v, const Quaternion& q);
 //quaternion‚©‚ç‰ñ“]s—ñ‚ğ‹‚ß‚é
 Matrix4 MakeRotateMatrix(const Quaternion& q);
 
+//‹…–ÊüŒ`•âŠÔ
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t);
+

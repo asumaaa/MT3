@@ -77,3 +77,29 @@ Matrix4 MakeRotateMatrix(const Quaternion& q)
     };
     return m1;
 }
+
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t)
+{
+    Quaternion q2 = q0;
+    Quaternion q3 = q1;
+
+    //ì‡êœ
+    float dot = q2.v.dot(q3.v);
+
+    if(dot < 0)
+    { 
+        q2 = Conjugate(q2);   //Ç‡Ç§ï–ï˚ÇÃâÒì]ÇóòópÇ∑ÇÈ
+        dot = -dot;     //ì‡êœÇ‡îΩì]
+    }
+
+    //Ç»Ç∑äpÇãÅÇﬂÇÈ
+    float theta = std::acos(dot);
+
+    //thetaÇ∆sinÇégÇ¡Çƒï‚äÆåWêîscale0,scale1ÇãÅÇﬂÇÈ
+    float scale0 = (sin((1 - t) * theta) / sin(theta));
+    float scale1 = (sin(t * theta) / sin(theta));
+
+    /*return scale0 * q2 + scale1 * q3*/
+    return Quaternion(q2.v.x * scale0 + q3.v.x * scale1, q2.v.y * scale0 + q3.v.y * scale1,
+        q2.v.z * scale0 + q3.v.z * scale1, q2.w * scale0 + q3.w * scale1);
+}
