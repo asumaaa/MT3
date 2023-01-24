@@ -34,6 +34,8 @@ float Norm(const Quaternion& q);
 Quaternion Normalize(const Quaternion& q);
 //‹tQuaternion‚ğ•Ô‚·
 Quaternion Inverse(const Quaternion& q);
+//Quaternion‚Ì“àÏ‚ğ•Ô‚·
+float dot(const Quaternion& q0, const Quaternion& q1);
 
 //”CˆÓ²‰ñ“]‚ğ•\‚·Quaternion‚Ì¶¬
 Quaternion MakeAxisAngle(const Vector3& vector, float angle);

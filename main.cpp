@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	Quaternion rotation0 = MakeAxisAngle({ 0.71f, 0.71f, 0.0f }, 0.3f);
-	Quaternion rotation1 = MakeAxisAngle({ 0.71f, 0.0f, 0.71f }, 3.141592f);
+	Quaternion rotation1 = MakeAxisAngle({ -0.71f, -0.71f, -0.0f }, -0.3f);
 
 	Quaternion interpolate0 = Slerp(rotation0, rotation1, 0.0f);
 	Quaternion interpolate1 = Slerp(rotation0, rotation1, 0.3f);

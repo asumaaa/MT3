@@ -2,6 +2,7 @@
 #include "cmath"
 #include "math.h"
 #define PI 3.141592
+#define EPSILON 0.000001
 
 Quaternion IdentityQuaternion()
 {
@@ -38,6 +39,11 @@ Quaternion Inverse(const Quaternion& q)
 {
     float n = pow(Norm(q),2.0f);
     return Quaternion(Conjugate(q).v.x/n, Conjugate(q).v.y / n, Conjugate(q).v.z / n, Conjugate(q).w / n);
+}
+
+float dot(const Quaternion& q0, const Quaternion& q1)
+{
+    return (q0.w * q1.w) + (q0.v.x * q1.v.x) + (q0.v.y * q1.v.y) + (q0.v.z * q1.v.z);
 }
 
 Quaternion MakeAxisAngle(const Vector3& vector, float angle)
@@ -84,22 +90,28 @@ Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t)
     Quaternion q3 = q1;
 
     //ì‡êœ
-    float dot = q2.v.dot(q3.v);
+    float d = dot(q2,q3);
 
-    if(dot < 0)
+    if(d < 0)
     { 
         q2 = Conjugate(q2);   //Ç‡Ç§ï–ï˚ÇÃâÒì]ÇóòópÇ∑ÇÈ
-        dot = -dot;     //ì‡êœÇ‡îΩì]
+        d = -d;     //ì‡êœÇ‡îΩì]
+    }
+
+    //Ç»Ç∑äpÇ™0ÇÃèÍçá
+    if (d >= 1.0f - EPSILON)
+    {
+        return Quaternion((1.0f - t) * q2.v.x + t * q3.v.x, (1.0f - t) * q2.v.y + t * q3.v.y,
+            (1.0f - t) * q2.v.z + t * q3.v.z, (1.0f - t) * q2.w + t * q3.w);
     }
 
     //Ç»Ç∑äpÇãÅÇﬂÇÈ
-    float theta = std::acos(dot);
+    float theta = std::acos(d);
 
     //thetaÇ∆sinÇégÇ¡Çƒï‚äÆåWêîscale0,scale1ÇãÅÇﬂÇÈ
     float scale0 = (sin((1 - t) * theta) / sin(theta));
     float scale1 = (sin(t * theta) / sin(theta));
 
-    /*return scale0 * q2 + scale1 * q3*/
     return Quaternion(q2.v.x * scale0 + q3.v.x * scale1, q2.v.y * scale0 + q3.v.y * scale1,
         q2.v.z * scale0 + q3.v.z * scale1, q2.w * scale0 + q3.w * scale1);
 }
