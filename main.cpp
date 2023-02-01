@@ -28,14 +28,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	Quaternion rotation0 = MakeAxisAngle({ 0.71f, 0.71f, 0.0f }, 0.3f);
-	Quaternion rotation1 = MakeAxisAngle({ -0.71f, -0.71f, -0.0f }, -0.3f);
-
-	Quaternion interpolate0 = Slerp(rotation0, rotation1, 0.0f);
-	Quaternion interpolate1 = Slerp(rotation0, rotation1, 0.3f);
-	Quaternion interpolate2 = Slerp(rotation0, rotation1, 0.5f);
-	Quaternion interpolate3 = Slerp(rotation0, rotation1, 0.7f);
-	Quaternion interpolate4 = Slerp(rotation0, rotation1, 1.0f);
+	Vector3 direction1 = { 1.0f,0.0f,1.0f };
+	Vector3 direction2 = { 1.0f,1.0f,0.0f };
+	Quaternion dirToDir = DirectionToDirection(direction1, direction2);
 
 	//ゲームループ
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
@@ -43,17 +38,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		//更新
 		
 		//描画
-		Draw(0, 0, interpolate0);
-		Draw(0, 30, interpolate1);
-		Draw(0, 60, interpolate2);
-		Draw(0, 90, interpolate3);
-		Draw(0, 120, interpolate4);
-
-		DrawFormatString(350, 0, 0xffffff, "interpolate0:Slerp(q0,q1,0.0f)");
-		DrawFormatString(350, 30, 0xffffff, "interpolate1:Slerp(q0,q1,0.3f)");
-		DrawFormatString(350, 60, 0xffffff, "interpolate2:Slerp(q0,q1,0.5f)");
-		DrawFormatString(350, 90, 0xffffff, "interpolate3:Slerp(q0,q1,0.7f)");
-		DrawFormatString(350, 120, 0xffffff, "interpolate4:Slerp(q0,q1,1.0f)");
+		Draw(0, 0, dirToDir);
 
 		ScreenFlip();
 	}

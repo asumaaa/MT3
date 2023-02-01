@@ -115,3 +115,20 @@ Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t)
     return Quaternion(q2.v.x * scale0 + q3.v.x * scale1, q2.v.y * scale0 + q3.v.y * scale1,
         q2.v.z * scale0 + q3.v.z * scale1, q2.w * scale0 + q3.w * scale1);
 }
+
+Quaternion DirectionToDirection(const Vector3& u, const Vector3& v)
+{
+    Vector3 v1 = u;
+    Vector3 v2 = v;
+
+    //uとvを正規化して内積を求める
+    float dot = v1.normalize().dot(v2.normalize());
+    //u,vの外積
+    Vector3 cross = v1.cross(v2);
+    //軸を正規化
+    Vector3 axis = cross.normalize();
+    //単位ベクトルで内積をとっているのでacosで角度を求める
+    float theta = std::acos(dot);
+
+    return MakeAxisAngle(axis,theta);
+}
